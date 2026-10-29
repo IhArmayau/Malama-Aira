@@ -2,6 +2,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:dio/dio.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:llama_cpp_dart/llama_cpp_dart.dart';
 
 void main() {
   runApp(const MyApp());
@@ -36,7 +37,6 @@ class _ModelInitializerScreenState extends State<ModelInitializerScreen> {
   double downloadProgress = 0.0;
   String statusMessage = "Checking local AI storage...";
 
-  // Direct download link for your Hugging Face 1.5B model file
   final String modelUrl =
       "https://huggingface.co/IhArmayau/malama-aira-direct-1.5b-gguf/resolve/main/Qwen2.5-1.5B-Instruct.Q4_K_M.gguf";
   final String fileName = "Qwen2.5-1.5B-Instruct.Q4_K_M.gguf";
@@ -49,7 +49,7 @@ class _ModelInitializerScreenState extends State<ModelInitializerScreen> {
 
   Future<void> _checkAndPrepareModel() async {
     try {
-      // 1. Check public Download folder first (Supports easy manual placement!)
+      // 1. Check public Download folder first
       final downloadDir = Directory('/storage/emulated/0/Download');
       final publicFile = File('${downloadDir.path}/$fileName');
 
@@ -165,7 +165,7 @@ class _ModelInitializerScreenState extends State<ModelInitializerScreen> {
   }
 }
 
-/// 2. Main Chat Screen
+/// 2. Main Chat Screen with Real Llama.cpp Inference
 class ChatScreen extends StatefulWidget {
   final String modelPath;
   const ChatScreen({super.key, required this.modelPath});
@@ -176,43 +176,87 @@ class ChatScreen extends StatefulWidget {
 
 class _ChatScreenState extends State<ChatScreen> {
   final TextEditingController _controller = TextEditingController();
-  final List<Map<String, String>> _messages = [];
+  final List> _messages = [];
   bool _isLoading = false;
+  Llama? _llama;
+  bool _isModelLoaded = false;
 
   @override
   void initState() {
     super.initState();
-    // widget.modelPath contains the absolute path to your downloaded .gguf file
-    // Pass this path directly to llama_cpp_dart when you set up your inference engine
+    _initLlamaModel();
+  }
+
+  Future<void> _initLlamaModel() async {
+    try {
+      setState(() {
+        _messages.add({
+          "sender": "aira",
+          "text": "Loading model into memory... Please wait a moment."
+        });
+      });
+
+      // Initialize llama_cpp_dart with the GGUF file path
+      _llama = Llama(widget.modelPath);
+      
+      setState(() {
+        _isModelLoaded = true;
+        _messages.last["text"] = "Malama Aira is fully loaded and ready offline! Ask me anything.";
+      });
+    } catch (e) {
+      setState(() {
+        _messages.last["text"] = "Failed to load GGUF model: $e";
+      });
+    }
   }
 
   void _sendMessage() async {
     String text = _controller.text.trim();
-    if (text.isEmpty) return;
+    if (text.isEmpty || !_isModelLoaded || _llama == null) return;
 
     setState(() {
       _messages.add({"sender": "user", "text": text});
+      _messages.add({"sender": "aira", "text": ""}); // Placeholder for token streaming
       _isLoading = true;
     });
     _controller.clear();
 
-    // Placeholder response simulation
-    await Future.delayed(const Duration(milliseconds: 800));
+    try {
+      _llama!.setPrompt(text);
+      String fullResponse = "";
 
-    setState(() {
-      _messages.add({
-        "sender": "aira",
-        "text": "Model path loaded: ${widget.modelPath.split('/').last}. Ready for offline LLM queries!"
+      while (true) {
+        var (token, done) = _llama!.getNext();
+        if (token.isNotEmpty) {
+          fullResponse += token;
+          setState(() {
+            _messages.last["text"] = fullResponse;
+          });
+        }
+        if (done) break;
+      }
+    } catch (e) {
+      setState(() {
+        _messages.last["text"] = "Inference error: $e";
       });
-      _isLoading = false;
-    });
+    } finally {
+      setState(() {
+        _isLoading = false;
+      });
+    }
+  }
+
+  @override
+  void dispose() {
+    _llama?.dispose();
+    super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Malama Aira (100% Offline)"),
+        title: const Text("Malama Aira (100% Offline AI)"),
         backgroundColor: Colors.teal,
       ),
       body: Column(
@@ -252,17 +296,18 @@ class _ChatScreenState extends State<ChatScreen> {
                 Expanded(
                   child: TextField(
                     controller: _controller,
-                    decoration: const InputDecoration(
-                      hintText: "Ask physics, math, or biology...",
-                      border: OutlineInputBorder(),
+                    decoration: InputDecoration(
+                      hintText: _isModelLoaded ? "Ask physics, math, or biology..." : "Loading model...",
+                      border: const OutlineInputBorder(),
                     ),
-                    onSubmitted: (_) => _isLoading ? null : _sendMessage(),
+                    enabled: _isModelLoaded && !_isLoading,
+                    onSubmitted: (_) => _sendMessage(),
                   ),
                 ),
                 const SizedBox(width: 8.0),
                 IconButton(
                   icon: const Icon(Icons.send, color: Colors.teal),
-                  onPressed: _isLoading ? null : _sendMessage,
+                  onPressed: (_isModelLoaded && !_isLoading) ? _sendMessage : null,
                 ),
               ],
             ),
