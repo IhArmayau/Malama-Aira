@@ -49,18 +49,33 @@ class _ModelInitializerScreenState extends State<ModelInitializerScreen> {
 
   Future<void> _checkAndPrepareModel() async {
     try {
-      final dir = await getApplicationDocumentsDirectory();
-      final filePath = "${dir.path}/$fileName";
-      final file = File(filePath);
+      // 1. Check public Download folder first (Supports easy manual placement!)
+      final downloadDir = Directory('/storage/emulated/0/Download');
+      final publicFile = File('${downloadDir.path}/$fileName');
 
-      if (await file.exists()) {
+      if (await publicFile.exists()) {
+        setState(() {
+          statusMessage = "Model found in Download folder! Launching...";
+        });
+        await Future.delayed(const Duration(milliseconds: 600));
+        _navigateToChat(publicFile.path);
+        return;
+      }
+
+      // 2. Check private app internal storage
+      final dir = await getApplicationDocumentsDirectory();
+      final privateFilePath = "${dir.path}/$fileName";
+      final privateFile = File(privateFilePath);
+
+      if (await privateFile.exists()) {
         setState(() {
           statusMessage = "AI Model found locally! Launching...";
         });
         await Future.delayed(const Duration(milliseconds: 600));
-        _navigateToChat(filePath);
+        _navigateToChat(privateFilePath);
       } else {
-        await _downloadModel(filePath);
+        // 3. Otherwise, auto-download via Dio
+        await _downloadModel(privateFilePath);
       }
     } catch (e) {
       setState(() {
