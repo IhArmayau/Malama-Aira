@@ -1,4 +1,3 @@
-@"
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:dio/dio.dart';
@@ -172,7 +171,7 @@ class ChatScreen extends StatefulWidget {
 
 class _ChatScreenState extends State<ChatScreen> {
   final TextEditingController _controller = TextEditingController();
-  final List<Map<String, String>> _messages = [];
+  final List> _messages = [];
   bool _isLoading = false;
   Llama? _llama;
   bool _isModelLoaded = false;
@@ -312,4 +311,3 @@ class _ChatScreenState extends State<ChatScreen> {
     );
   }
 }
-"@ | Out-File -FilePath lib/main.dart -Encoding utf8
