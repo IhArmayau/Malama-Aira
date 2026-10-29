@@ -1,3 +1,4 @@
+@"
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:dio/dio.dart';
@@ -24,7 +25,6 @@ class MyApp extends StatelessWidget {
   }
 }
 
-/// 1. Model Downloader & Verification Screen
 class ModelInitializerScreen extends StatefulWidget {
   const ModelInitializerScreen({super.key});
 
@@ -49,7 +49,6 @@ class _ModelInitializerScreenState extends State<ModelInitializerScreen> {
 
   Future<void> _checkAndPrepareModel() async {
     try {
-      // 1. Check public Download folder first
       final downloadDir = Directory('/storage/emulated/0/Download');
       final publicFile = File('${downloadDir.path}/$fileName');
 
@@ -62,7 +61,6 @@ class _ModelInitializerScreenState extends State<ModelInitializerScreen> {
         return;
       }
 
-      // 2. Check private app internal storage
       final dir = await getApplicationDocumentsDirectory();
       final privateFilePath = "${dir.path}/$fileName";
       final privateFile = File(privateFilePath);
@@ -74,7 +72,6 @@ class _ModelInitializerScreenState extends State<ModelInitializerScreen> {
         await Future.delayed(const Duration(milliseconds: 600));
         _navigateToChat(privateFilePath);
       } else {
-        // 3. Otherwise, auto-download via Dio
         await _downloadModel(privateFilePath);
       }
     } catch (e) {
@@ -165,7 +162,6 @@ class _ModelInitializerScreenState extends State<ModelInitializerScreen> {
   }
 }
 
-/// 2. Main Chat Screen with Real Llama.cpp Inference
 class ChatScreen extends StatefulWidget {
   final String modelPath;
   const ChatScreen({super.key, required this.modelPath});
@@ -176,7 +172,7 @@ class ChatScreen extends StatefulWidget {
 
 class _ChatScreenState extends State<ChatScreen> {
   final TextEditingController _controller = TextEditingController();
-  final List> _messages = [];
+  final List<Map<String, String>> _messages = [];
   bool _isLoading = false;
   Llama? _llama;
   bool _isModelLoaded = false;
@@ -196,7 +192,6 @@ class _ChatScreenState extends State<ChatScreen> {
         });
       });
 
-      // Initialize llama_cpp_dart with the GGUF file path
       _llama = Llama(widget.modelPath);
       
       setState(() {
@@ -216,7 +211,7 @@ class _ChatScreenState extends State<ChatScreen> {
 
     setState(() {
       _messages.add({"sender": "user", "text": text});
-      _messages.add({"sender": "aira", "text": ""}); // Placeholder for token streaming
+      _messages.add({"sender": "aira", "text": ""});
       _isLoading = true;
     });
     _controller.clear();
@@ -317,3 +312,4 @@ class _ChatScreenState extends State<ChatScreen> {
     );
   }
 }
+"@ | Out-File -FilePath lib/main.dart -Encoding utf8
