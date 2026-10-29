@@ -1,0 +1,28 @@
+name: malama_aira_mobile
+description: Offline bilingual AI tutor for students and learners across all educational levels.
+publish_to: 'none'
+version: 1.0.0+1
+
+environment:
+  sdk: '>=3.0.0 <4.0.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+  provider: ^6.1.1
+  path_provider: ^2.1.2
+  sqflite: ^2.3.2
+  shared_preferences: ^2.2.2
+  llama_cpp_dart: ^0.1.0  # Required for offline GGUF inference
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^3.0.0
+
+flutter:
+  uses-material-design: true
+
+  # Register your model folder asset here
+  assets:
+    - malama-aira-direct-1.5b-gguf/malama_aira_1.5b.gguf
