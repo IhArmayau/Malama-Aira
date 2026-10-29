@@ -10,6 +10,7 @@ dependencies:
   flutter:
     sdk: flutter
   provider: ^6.1.1
+  dio: ^5.4.0
   path_provider: ^2.1.2
   sqflite: ^2.3.2
   shared_preferences: ^2.2.2
@@ -22,7 +23,3 @@ dev_dependencies:
 
 flutter:
   uses-material-design: true
-
-  # Register your model folder asset here
-  assets:
-    - malama-aira-direct-1.5b-gguf/malama_aira_1.5b.gguf
