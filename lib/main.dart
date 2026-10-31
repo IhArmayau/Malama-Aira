@@ -1,5 +1,4 @@
-﻿$dartCode = @"
-import 'dart:io';
+﻿import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:dio/dio.dart';
 import 'package:path_provider/path_provider.dart';
@@ -312,5 +311,3 @@ class _ChatScreenState extends State<ChatScreen> {
     );
   }
 }
-"@
-[System.IO.File]::WriteAllText("$PWD/lib/main.dart", $dartCode, [System.Text.Encoding]::UTF8)
