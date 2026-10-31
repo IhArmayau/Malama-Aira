@@ -1,4 +1,4 @@
-﻿@"
+﻿$dartCode = @"
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:dio/dio.dart';
@@ -150,7 +150,7 @@ class _ModelInitializerScreenState extends State<ModelInitializerScreen> {
                 ),
                 const SizedBox(height: 12),
                 Text(
-                  "\${(downloadProgress * 100).toStringAsFixed(1)}%",
+                  "${(downloadProgress * 100).toStringAsFixed(1)}%",
                   style: const TextStyle(color: Colors.grey, fontSize: 14),
                 ),
               ],
@@ -200,7 +200,7 @@ class _ChatScreenState extends State<ChatScreen> {
       });
     } catch (e) {
       setState(() {
-        _messages.last["text"] = "Failed to load GGUF model: \$e";
+        _messages.last["text"] = "Failed to load GGUF model: $e";
       });
     }
   }
@@ -232,7 +232,7 @@ class _ChatScreenState extends State<ChatScreen> {
       }
     } catch (e) {
       setState(() {
-        _messages.last["text"] = "Inference error: \$e";
+        _messages.last["text"] = "Inference error: $e";
       });
     } finally {
       setState(() {
@@ -312,4 +312,5 @@ class _ChatScreenState extends State<ChatScreen> {
     );
   }
 }
-"@ | Out-File -FilePath lib/main.dart -Encoding utf8
+"@
+[System.IO.File]::WriteAllText("$PWD/lib/main.dart", $dartCode, [System.Text.Encoding]::UTF8)
